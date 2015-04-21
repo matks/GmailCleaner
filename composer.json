@@ -1,0 +1,35 @@
+{
+    "name": "matks/GmailCleaner",
+    "description": "Script to clean a flooded gmail mailbox",
+    "type": "library",
+    "keywords": [
+        "php",
+        "gmail",
+        "cleaner"
+    ],
+    "homepage": "https://github.com/matks/GmailCleaner",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Mathieu Ferment",
+            "email": "mathieu.ferment@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5",
+        "google/apiclient": "1.0.*@beta",
+        "symfony/yaml": "2.5.x"
+    },
+    "autoload": {
+        "psr-0": {
+            "Matks\\GmailCleaner": "src/",
+            "Matks\\GmailCleanerTest": "tests/Util/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}

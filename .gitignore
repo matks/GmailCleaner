@@ -1,0 +1,7 @@
+/build/
+/vendor/
+/bin/
+/composer.phar
+.idea
+
+config/parameters.yml
