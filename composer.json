@@ -5,6 +5,7 @@
     "keywords": [
         "php",
         "gmail",
+        "google-api",
         "cleaner"
     ],
     "homepage": "https://github.com/matks/GmailCleaner",
@@ -29,7 +30,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.1-dev"
+            "dev-master": "1.0-dev"
         }
     }
 }

@@ -14,9 +14,5 @@ if (!defined('AUTOLOAD_COMPOSER_INSTALL')) {
 
 require AUTOLOAD_COMPOSER_INSTALL;
 
-if (count($argv) !== 1) {
-    echo 'php gmail-cleaner.php' . PHP_EOL;
-    die(1);
-}
-
 Matks\GmailCleaner\Launcher::main();
+

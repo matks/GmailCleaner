@@ -2,6 +2,7 @@
 
 namespace Matks\GmailCleaner;
 
+use Google_Auth_AssertionCredentials;
 use Google_Client;
 use Google_Service_Gmail;
 use Symfony\Component\Yaml\Yaml;
@@ -29,8 +30,24 @@ class Launcher
 
     public function run()
     {
-        $gmailCleaner = $this->setup();
-        $gmailCleaner->clean();
+        try {
+            $gmailCleaner  = $this->setup();
+            $configuration = $this->getConfiguration();
+
+            $from   = new \DateTime($configuration['parameters']['from']);
+            $to     = new \DateTime($configuration['parameters']['to']);
+            $delete = true;
+        } catch (Exception $e) {
+            print($e->getMessage());
+            die(1);
+        }
+
+        try {
+            $gmailCleaner->clean($from, $to, $delete);
+        } catch (Exception $e) {
+            print($e->getMessage());
+            unset($_SESSION['access_token']);
+        }
 
         die(0);
     }
@@ -42,6 +59,29 @@ class Launcher
      */
     private function setup()
     {
+        $configuration   = $this->getConfiguration();
+
+        $googleAPIClient = $this->setupGoogleAPIClient($configuration['parameters']['google_api_key']);
+
+        $authenticator = new APIAuthenticator($googleAPIClient);
+
+        $isAuthenticated = $authenticator->authenticate();
+
+        if (!$isAuthenticated) {
+            die("<br/>Not authenticated");
+        }
+
+        $gmailService = new Google_Service_Gmail($googleAPIClient);
+        $gmailCleaner = new GmailCleaner($gmailService);
+
+        return $gmailCleaner;
+    }
+
+    /**
+     * @return array
+     */
+    private function getConfiguration()
+    {
         $configurationFilepath = $this->getConfigurationFilepath();
 
         if (!file_exists($configurationFilepath)) {
@@ -52,12 +92,7 @@ class Launcher
 
         $this->validateConfiguration($configuration);
 
-        $googleAPIClient = $this->setupGoogleAPIClient($configuration['parameters']['google_api_key']);
-        $gmailService    = new Google_Service_Gmail($googleAPIClient);
-
-        $gmailCleaner = new GmailCleaner($gmailService);
-
-        return $gmailCleaner;
+        return $configuration;
     }
 
     /**
@@ -82,6 +117,14 @@ class Launcher
         if (!isset($configuration['parameters']['google_api_key'])) {
             throw new Exception('Missing configuration parameter: google_api_key');
         }
+
+        if (!isset($configuration['parameters']['from'])) {
+            throw new Exception('Missing configuration parameter: from');
+        }
+
+        if (!isset($configuration['parameters']['to'])) {
+            throw new Exception('Missing configuration parameter: to');
+        }
     }
 
     /**
@@ -89,12 +132,41 @@ class Launcher
      *
      * @return Google_Client
      */
-    private function setupGoogleAPIClient($apiKey)
+    private function setupGoogleAPIClient($jsonKeyFilename)
     {
         $client = new Google_Client();
-        $client->setApplicationName("Gmail Cleaner");
-        $client->setDeveloperKey($apiKey);
+
+        $requiredScopes = [
+            Google_Service_Gmail::MAIL_GOOGLE_COM // 'deletion' scope
+        ];
+
+        $client->setApplicationName('Gmail Cleaner');
+        $client->setScopes(implode(' ', $requiredScopes));
+
+        $client->setAuthConfigFile($this->getKeyFilepath($jsonKeyFilename));
+        $client->setAccessType('offline');
 
         return $client;
+    }
+
+    /**
+     * @param string $filename
+     *
+     * @return string
+     */
+    private function getKeyFilepath($filename)
+    {
+        $configDirectory = __DIR__ . '/../../../config/auth/';
+        $path            = realpath($configDirectory . $filename);
+
+        if (!file_exists($path)) {
+            throw new Exception("Key filepath is bad: $path");
+        }
+
+        if (!is_readable($path)) {
+            throw new Exception("Given key file is not readable");
+        }
+
+        return $path;
     }
 }

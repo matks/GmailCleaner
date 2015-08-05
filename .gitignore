@@ -5,3 +5,6 @@
 .idea
 
 config/parameters.yml
+config/auth/*
+
+*.log
