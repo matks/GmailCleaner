@@ -24,8 +24,7 @@
     },
     "autoload": {
         "psr-0": {
-            "Matks\\GmailCleaner": "src/",
-            "Matks\\GmailCleanerTest": "tests/Util/"
+            "Matks\\GmailCleaner": "src/"
         }
     },
     "extra": {
